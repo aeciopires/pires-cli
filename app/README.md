@@ -139,11 +139,11 @@ Run ``$HOME/pires-cli/pires-cli -h`` or ``pires-cli subcommand -h`` to see all l
 > Attention!!! The order is important because some variables is readed first and used to compose other variables.
 
 ```env
-CLI_CONFIG_FILE=             # Dir of configuration file. Can be ommited. In this case, ``pires-cli`` follow the precedence rules explained in [README.md#configuration-file](README.md#configuration-file) section.
-CLI_GCP_REGION=              # GCP region. Supported values in lower case. Example: us-central1
-CLI_GCP_PROJECT=             # GCP project. Supported values in lower case. Example: nonprod
-CLI_ENVIRONMENT=             # Environment name. Supported values in lower case: dev, staging and production. Example: dev
-CLI_DATABASE_TYPE=           # Database type. Supported values in lower case: postgresql, mongodb and none. Example: postgresql
+CLI_CONFIG_FILE=    # Dir of configuration file. Can be ommited. In this case, ``pires-cli`` follow the precedence rules explained in [README.md#configuration-file](README.md#configuration-file) section.
+CLI_GCP_REGION=     # GCP region. Supported values in lower case. Example: us-central1
+CLI_GCP_PROJECT=    # GCP project. Supported values in lower case. Example: nonprod
+CLI_ENVIRONMENT=    # Environment name. Supported values in lower case: dev, staging and production. Example: dev
+CLI_DATABASE_TYPE=  # Database type. Supported values in lower case: postgresql, mongodb and none. Example: postgresql
 ```
 
 Other variables and values is formed during the execution.
