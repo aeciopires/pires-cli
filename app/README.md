@@ -11,9 +11,9 @@
   - [Downloading CLI](#downloading-cli)
 - [How to use](#how-to-use)
   - [STEP-0: Login/Logout on GCP](#step-0-loginlogout-on-gcp)
-  - [STEP-2: Getting version and help about the pires-cli](#step-2-getting-version-and-help-about-the-pires-cli)
+  - [STEP-1: Getting version and help about the pires-cli](#step-1-getting-version-and-help-about-the-pires-cli)
     - [Enable debug mode](#enable-debug-mode)
-  - [STEP-3: Create the configuration file before run the pires-cli](#step-3-create-the-configuration-file-before-run-the-pires-cli)
+  - [STEP-2: Create the configuration file before run the pires-cli](#step-2-create-the-configuration-file-before-run-the-pires-cli)
     - [Configuration file content or environment variables supported](#configuration-file-content-or-environment-variables-supported)
   - [GCP Actions](#gcp-actions)
     - [(OPTIONAL) Create service account](#optional-create-service-account)
@@ -76,7 +76,7 @@ gcloud config list
 #gcloud auth revoke --all
 ```
 
-## STEP-2: Getting version and help about the pires-cli
+## STEP-1: Getting version and help about the pires-cli
 
 ```bash
 $HOME/pires-cli/pires-cli -v # show short version
@@ -101,7 +101,7 @@ $HOME/pires-cli/pires-cli gcp firewall export-rules -h # show help about export-
 
 Enable debug mode using the ``-D`` for ``pires-cli`` in any position.
 
-## STEP-3: Create the configuration file before run the pires-cli
+## STEP-2: Create the configuration file before run the pires-cli
 
 > Attention!!! Order of precedence:
 >
