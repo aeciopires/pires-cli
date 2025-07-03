@@ -19,6 +19,8 @@ See [app/README.md#how-to-use](app/README.md#how-to-use) section to more informa
 
 - [Aécio Pires](https://www.linkedin.com/in/aeciopires/?locale=en_US)
 
+Special thanks to [Filipe Bispo Silva Maia]https://www.linkedin.com/in/filipebsmaia/) e [Gustavo da Silva](https://www.linkedin.com/in/gstvds/) those who helped me learn Golang while developing another CLI specifically for work use.
+
 # Learning Golang
 
 Why Golang?
