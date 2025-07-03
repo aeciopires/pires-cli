@@ -1,5 +1,9 @@
 # pires-cli
 
+[![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://opensource.org/license/gpl-3-0) [![Downloads](https://img.shields.io/github/downloads/aeciopires/pires-cli/total?label=Downloads
+)](https://somsubhra.github.io/github-release-stats/?username=aeciopires&repository=pires-cli&page=1&per_page=500) [![Releases ChangeLog](https://img.shields.io/badge/Changelog-8A2BE2
+)](https://github.com/aeciopires/pires-cli/blob/0.1.0/app/CHANGELOG.md)
+
 <!-- TOC -->
 
 - [pires-cli](#pires-cli)
