@@ -10,7 +10,7 @@
 # Requirements
 
 - Configure authentication on your Github account to use the SSH protocol instead of HTTP. Watch this tutorial to learn how to set up: https://help.github.com/en/github/authenticating-to-github/adding-a-new-ssh-key-to-your-github-account
-- Install the commands: ``asdf``, ``golang``, ``make``, ``gcloud``, ``kubectl``, ``docker``, ``git``, ``helm-docs``, helm plugins and other softwares following the tutorials:
+- Install the commands: ``asdf``, ``golang``, ``make``, ``gcloud``, ``kubectl``, ``docker``, ``git``, ``helm-docs``, ``trivy``, helm plugins and other softwares following the tutorials:
   - [MacOS](https://github.com/aeciopires/adsoft/blob/master/softwares-macos.md)
   - [Ubuntu](https://github.com/aeciopires/adsoft/blob/master/softwares-ubuntu.md)
 - Login in GCP using gcloud:
