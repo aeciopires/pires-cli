@@ -21,6 +21,8 @@
     - [(OPTIONAL) Create database in GCP-CloudSQL (PostgreSQL)](#optional-create-database-in-gcp-cloudsql-postgresql)
     - [(OPTIONAL) Create database user in GCP-CloudSQL (PostgreSQL)](#optional-create-database-user-in-gcp-cloudsql-postgresql)
     - [(OPTIONAL) Export firewall rules to CSV file](#optional-export-firewall-rules-to-csv-file)
+    - [(OPTIONAL) Export to TXT file the PostgreSQL audit logs (INSERT, UPDATE, DELETE) from a Cloud SQL instance](#optional-export-to-txt-file-the-postgresql-audit-logs-insert-update-delete-from-a-cloud-sql-instance)
+    - [(OPTIONAL) Export to TXT file the PostgreSQL users and permissions from a Cloud SQL instance](#optional-export-to-txt-file-the-postgresql-users-and-permissions-from-a-cloud-sql-instance)
 
 <!-- TOC -->
 
@@ -187,5 +189,24 @@ $HOME/pires-cli/pires-cli gcp cloudsql create-user -C $HOME/pires-cli/.env -D -i
 Export firewall rules to CSV file in specific project and environment.
 
 ```bash
-$HOME/pires-cli/pires-cli gcp gcp firewall export-rules -C $HOME/pires-cli/.env -D -o $HOME
+$HOME/pires-cli/pires-cli gcp firewall export-rules -C $HOME/pires-cli/.env -D -o $HOME
+```
+
+### (OPTIONAL) Export to TXT file the PostgreSQL audit logs (INSERT, UPDATE, DELETE) from a Cloud SQL instance
+
+Export to TXT file the PostgreSQL audit logs (INSERT, UPDATE, DELETE) from a Cloud SQL instance
+
+> ATTENTION!!!
+> This requires the ``cloudsql.pgaudit`` flag to be enabled on the instance.
+
+```bash
+$HOME/pires-cli/pires-cli gcp cloudsql export-postgresql-audit-logs -i nonprod-psql -C $HOME/pires-cli/.env -D -o $HOME
+```
+
+### (OPTIONAL) Export to TXT file the PostgreSQL users and permissions from a Cloud SQL instance
+
+Export to TXT file the PostgreSQL users and permissions from a Cloud SQL instance in specific project.
+
+```bash
+$HOME/pires-cli/pires-cli gcp cloudsql export-postgresql-users-permissions -i nonprod-psql -u postgres -C $HOME/pires-cli/.env -D -o $HOME
 ```

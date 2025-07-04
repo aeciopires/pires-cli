@@ -37,7 +37,7 @@ var (
 	// MINOR version when you add functionality in a backward compatible manner
 	// PATCH version when you make backward compatible bug fixes
 	// Reference: https://semver.org/
-	CLIVersion = "0.1.0"
+	CLIVersion = "0.2.0"
 	CLIName    = "pires-cli"
 
 	CommandsToCheck = []string{"git", "kubectl", "gcloud"}
