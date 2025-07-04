@@ -14,7 +14,7 @@ func main() {
 	common.CheckCommandsAvailable(config.CommandsToCheck)
 	// ToDO: Here we have a bug, because the flags values is not loaded yet.
 	// This code block should be moved to the root command Run function and replicated to subcommands.
-	if config.VPNCheckConnection != nil && *config.VPNCheckConnection {
+	if config.VPNCheckConnection {
 		common.CheckVPNConnection(config.Properties.DefaultVPNAddressTarget)
 	}
 	cmd.Execute()

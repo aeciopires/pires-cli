@@ -40,6 +40,35 @@ func RunGcloudCommand(args ...string) (stdout string, stderr string, err error) 
 	return stdout, stderr, nil
 }
 
+// RunPsqlCommand executes a psql command with the given arguments.
+// It captures and returns stdout and stderr.
+// Assumes psql is in the system PATH.
+func RunPsqlCommand(args ...string) (stdout string, stderr string, err error) {
+	// Proceed with running the command
+	cmd := exec.Command("psql", args...)
+
+	// Buffers to capture stdout and stderr
+	var outb, errb bytes.Buffer
+	cmd.Stdout = &outb
+	cmd.Stderr = &errb
+
+	common.Logger("debug", "Executing command: psql %s", strings.Join(args, " "))
+	err = cmd.Run()
+
+	stdout = outb.String()
+	stderr = errb.String()
+
+	if err != nil {
+		return stdout, stderr, fmt.Errorf("psql command 'psql %s' failed: %w\nStderr: %s", strings.Join(args, " "), err, stderr)
+	}
+
+	if stderr != "" {
+		common.Logger("info", "psql command stderr (exit code 0):\n%s", stderr)
+	}
+
+	return stdout, stderr, nil
+}
+
 // CheckGcloudAuth verifies if gcloud is authenticated by checking the active account.
 func CheckGcloudAuth() string {
 	common.Logger("debug", "Checking gcloud authentication status...")
