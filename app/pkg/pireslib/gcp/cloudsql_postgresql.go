@@ -2,116 +2,99 @@
 package gcp
 
 import (
-	"context"
-	"database/sql"
 	"fmt"
-	"net"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
-	"cloud.google.com/go/cloudsqlconn"
 	"github.com/aeciopires/pires-cli/internal/config"
 	"github.com/aeciopires/pires-cli/pkg/pireslib/common"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/jackc/pgx/v5/stdlib"
 )
 
-// ExportPostgresUsersAndPermissions connects to a Cloud SQL for PostgreSQL instance,
-// iterates through all databases, and exports a detailed list of user permissions
-// on a per-table basis to a .txt file.
-func ExportPostgresUsersAndPermissions(projectID, instanceID, user, password, outputDir string) {
+// ExportPostgresUsersAndPermissions connects to a PostgreSQL Cloud SQL instance
+// using the psql CLI, iterates through all databases (except those matching excludePattern or cloudsqladmin),
+// and exports a detailed list of user permissions per table to a TXT file.
+func ExportPostgresUsersAndPermissions(projectID, instanceID, dbHost, dbPort, dbUser, dbPassword, outputDir, excludePattern string, sslRequired bool) {
 	common.Logger("info", "Exporting user permissions from instance '%s' in project '%s'\n", instanceID, projectID)
 
-	ctx := context.Background()
-
-	// Use the Cloud SQL Go Connector to securely connect to the database.
-	d, err := cloudsqlconn.NewDialer(ctx)
-	if err != nil {
-		common.Logger("fatal", "cloudsqlconn.NewDialer: %w", err)
-	}
-	defer d.Close()
-
-	// Function to create a database connection pool for a specific database
-	getDB := func(dbName string) (*sql.DB, error) {
-		// Custom dialer function to connect to Cloud SQL with IAM authentication
-		// and public IP. This is necessary for connecting to Cloud SQL instances.
-		// If you want to use private IP, you can remove the WithPublicIP()
-		// option and ensure your environment is set up for private IP access.
-		// Note: WithIAMAuthN() is used for IAM authentication, which requires
-		// the Cloud SQL Admin API to be enabled and the user to have the
-		// appropriate IAM roles (e.g., Cloud SQL Client).
-		// If you want to use a service account, you can use WithServiceAccount()
-		// instead of WithIAMAuthN().
-		customDialer := func(ctx context.Context, network, addr string) (net.Conn, error) {
-			return d.Dial(ctx, fmt.Sprintf("%s:%s", projectID, instanceID), cloudsqlconn.WithPublicIP())
-		}
-
-		// parse pgx config
-		dsn := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable", user, password, dbName)
-		pgxConfig, err := pgxpool.ParseConfig(dsn)
+	// Compile regex if provided
+	var excludeRegex *regexp.Regexp
+	var err error
+	if excludePattern != "" {
+		excludeRegex, err = regexp.Compile(excludePattern)
 		if err != nil {
-			common.Logger("fatal", "pgxpool.ParseConfig: %v", err)
+			common.Logger("fatal", "Invalid exclude pattern regex '%s': %v", excludePattern, err)
 		}
-
-		// override DialFunc with Cloud SQL Dialer
-		pgxConfig.ConnConfig.DialFunc = customDialer
-
-		// open database
-		db := stdlib.OpenDB(*pgxConfig.ConnConfig)
-
-		return db, nil
 	}
 
-	// Connect to the default 'postgres' database to get a list of all databases
-	db, err := getDB("postgres")
-	if err != nil {
-		common.Logger("fatal", "Failed to connect to 'postgres' db to list databases: %w", err)
-	}
-	defer db.Close()
-
-	rows, err := db.QueryContext(ctx, "SELECT datname FROM pg_database WHERE datistemplate = false;")
-	if err != nil {
-		common.Logger("fatal", "Failed to query for database list: %w", err)
-	}
-	defer rows.Close()
-
-	var dbNames []string
-	for rows.Next() {
-		var name string
-		if err := rows.Scan(&name); err != nil {
-			common.Logger("fatal", "Failed to scan database name: %w", err)
+	// Ensure output dir exists
+	if outputDir != "" {
+		if err := os.MkdirAll(outputDir, config.PermissionDir); err != nil {
+			common.Logger("fatal", "Failed to create output directory '%s': %v", outputDir, err)
 		}
-		dbNames = append(dbNames, name)
 	}
-	rows.Close()
-	db.Close() // Close connection to 'postgres' db
 
 	var output strings.Builder
-	output.WriteString(fmt.Sprintf("User and Role Permissions Report for Instance: '%s'\n\n", instanceID))
+	timestamp := time.Now().Format("20060102-150405")
+	output.WriteString(fmt.Sprintf("User and Role Permissions Report for Instance: '%s' in project: '%s'. Generated is: '%s'\n\n", instanceID, projectID, timestamp))
 
-	// Iterate through each database to get permissions
-	for _, dbName := range dbNames {
-		common.Logger("info", "Checking permissions in database: %s\n", dbName)
-		output.WriteString(fmt.Sprintf("========================================\n") +
-			fmt.Sprintf(" DATABASE: %s\n", dbName) +
-			fmt.Sprintf("========================================\n\n"))
+	sslMode := "disable"
+	if sslRequired {
+		// if user forces sslmode, use require
+		sslMode = "require"
+	}
 
-		db, err := getDB(dbName)
-		if err != nil {
-			output.WriteString(fmt.Sprintf("Could not connect to database %s: %v\n\n", dbName, err))
-			continue // Skip to the next database
+	runPSQL := func(dbName, sql string) (string, error) {
+		args := []string{
+			fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s", dbHost, dbPort, dbUser, dbPassword, dbName, sslMode),
+			"-At",
+			"-c", sql,
 		}
-		defer db.Close()
 
-		// Query for table-level grants for all roles
-		query := `
+		stdout, stderr, err := RunPsqlCommand(args...)
+		common.Logger("debug", "Executing command: psql %s", strings.Join(args, " "))
+		if err != nil {
+			common.Logger("fatal", "psql command 'psql %s' failed: %w\nStderr: %s", strings.Join(args, " "), err, stderr)
+		}
+
+		if stderr != "" {
+			common.Logger("fatal", "psql command stderr (exit code 0):\n%s", stderr)
+		}
+
+		return stdout, nil
+	}
+
+	// List databases
+	dbListSQL := `SELECT datname FROM pg_database WHERE datistemplate = false;`
+	dbListOut, err := runPSQL("postgres", dbListSQL)
+	if err != nil {
+		common.Logger("fatal", "Failed to list databases: %v", err)
+	}
+
+	dbNames := strings.Fields(dbListOut)
+
+	// Iterate each database
+	for _, dbName := range dbNames {
+		if dbName == "cloudsqladmin" {
+			common.Logger("info", "Skipping internal database 'cloudsqladmin'")
+			continue
+		}
+		if excludeRegex != nil && excludeRegex.MatchString(dbName) {
+			common.Logger("info", "Skipping database '%s' (matches exclude pattern)", dbName)
+			continue
+		}
+
+		common.Logger("info", "Checking permissions in database: %s", dbName)
+
+		output.WriteString(fmt.Sprintf("========================================\n"))
+		output.WriteString(fmt.Sprintf(" DATABASE: %s\n", dbName))
+		output.WriteString(fmt.Sprintf("========================================\n\n"))
+
+		permSQL := `
 SELECT 
-    grantee, 
-    table_schema, 
-    table_name, 
-    privilege_type 
+    grantee || '|' || table_schema || '.' || table_name || '|' || privilege_type
 FROM 
     information_schema.role_table_grants 
 WHERE 
@@ -119,61 +102,52 @@ WHERE
 ORDER BY 
     grantee, table_schema, table_name;
 `
-		permRows, err := db.QueryContext(ctx, query)
+		permOut, err := runPSQL(dbName, permSQL)
 		if err != nil {
 			output.WriteString(fmt.Sprintf("Could not query permissions in %s: %v\n\n", dbName, err))
-			db.Close()
 			continue
 		}
-		defer permRows.Close()
 
-		permissions := make(map[string]map[string][]string) // user -> table -> [perms]
-		for permRows.Next() {
-			var grantee, tableSchema, tableName, privilegeType string
-			if err := permRows.Scan(&grantee, &tableSchema, &tableName, &privilegeType); err != nil {
-				common.Logger("warning", "Failed to scan permission row in %s: %v\n", dbName, err)
+		if strings.TrimSpace(permOut) == "" {
+			output.WriteString("No specific user permissions found on tables in this database.\n\n")
+			continue
+		}
+
+		lines := strings.Split(strings.TrimSpace(permOut), "\n")
+
+		currentUser := ""
+		for _, line := range lines {
+			parts := strings.Split(line, "|")
+			if len(parts) != 3 {
 				continue
 			}
-			fullTableName := fmt.Sprintf("%s.%s", tableSchema, tableName)
-			if permissions[grantee] == nil {
-				permissions[grantee] = make(map[string][]string)
+			grantee, table, privilege := parts[0], parts[1], parts[2]
+
+			if grantee == "PUBLIC" {
+				// Skip PUBLIC role
+				continue
 			}
-			permissions[grantee][fullTableName] = append(permissions[grantee][fullTableName], privilegeType)
+
+			if grantee != currentUser {
+				output.WriteString(fmt.Sprintf("  User/Role: %s\n", grantee))
+				currentUser = grantee
+			}
+			output.WriteString(fmt.Sprintf("    - Table: %s\n", table))
+			output.WriteString(fmt.Sprintf("      Permission: %s\n", privilege))
 		}
 
-		if len(permissions) == 0 {
-			output.WriteString("No specific user permissions found on tables in this database.\n\n")
-		} else {
-			for user, tables := range permissions {
-				output.WriteString(fmt.Sprintf("  User/Role: %s\n", user))
-				for table, perms := range tables {
-					output.WriteString(fmt.Sprintf("    - Table: %s\n", table))
-					output.WriteString(fmt.Sprintf("      Permissions: %s\n", strings.Join(perms, ", ")))
-				}
-				output.WriteString("\n")
-			}
-		}
-		db.Close()
+		output.WriteString("\n")
 	}
 
-	// Create the output directory if it doesn't exist
-	if outputDir != "" {
-		if err := os.MkdirAll(outputDir, config.PermissionDir); err != nil {
-			common.Logger("fatal", "Failed to create custom output directory '%s': %w", outputDir, err)
-		}
-	}
-
-	// Generate the filename
-	timestamp := time.Now().Format("20060102-150405")
+	// Write report to file
 	fileName := fmt.Sprintf("%s_%s_database_permissions_%s.txt", projectID, instanceID, timestamp)
 	filePath := filepath.Join(outputDir, fileName)
 
-	// Write the output to the file
 	if err := os.WriteFile(filePath, []byte(output.String()), config.PermissionFile); err != nil {
-		common.Logger("fatal", "Failed to write permissions report to file '%s': %w", filePath, err)
+		common.Logger("fatal", "Failed to write permissions report to file '%s': %v", filePath, err)
 	}
 
-	common.Logger("fatal", "Successfully exported detailed database permissions to: %s\n", filePath)
+	common.Logger("info", "Successfully exported detailed database permissions to: %s\n", filePath)
 }
 
 // ExportPostgresAuditLogs fetches logs for INSERT, UPDATE, and DELETE statements

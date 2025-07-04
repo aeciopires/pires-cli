@@ -85,8 +85,8 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&config.Properties.DefaultGCPRegion, "gcp-region", "R", config.Properties.DefaultGCPRegion, "GCP region.")
 	rootCmd.PersistentFlags().StringVarP(&config.Properties.DefaultDatabaseType, "database-type", "T", config.Properties.DefaultDatabaseType, "Database type. Supported values: postgresql or mongodb or none")
 	rootCmd.PersistentFlags().StringVarP(&config.Properties.DefaultVPNAddressTarget, "vpn-address-target", "I", config.Properties.DefaultVPNAddressTarget, "Address for VPN connectivity check. Required if --vpn-check-connection is true. Must be a valid URL (http or https).")
+	rootCmd.PersistentFlags().BoolVarP(&config.VPNCheckConnection, "vpn-check-connection", "J", false, "VPN check or not connection. If true, it will check the VPN connection using the --vpn-address-target flag.")
 
-	config.VPNCheckConnection = rootCmd.PersistentFlags().BoolP("vpn-check-connection", "J", false, "VPN check or not connection. If true, it will check the VPN connection using the --vpn-address-target flag.")
 	config.Debug = rootCmd.PersistentFlags().BoolP("debug", "D", false, "Enable debug mode.")
 
 	// Cobra also supports local flags, which will only run

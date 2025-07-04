@@ -90,7 +90,7 @@ var (
 	//----------------------------
 	// VPN configurations
 	//----------------------------
-	VPNCheckConnection *bool
+	VPNCheckConnection bool
 	VPNTimeout         time.Duration = 15
 )
 

@@ -38,7 +38,7 @@ GOLANG_SUPPORTED_PLATFORMS=linux/amd64 linux/arm64 darwin/amd64 darwin/arm64
 
 
 requirements:
-REQUIRED_PACKAGES := docker docker-compose go gcloud wget kubectl trivy
+REQUIRED_PACKAGES := docker docker-compose go gcloud wget kubectl trivy psql
 $(foreach package,$(REQUIRED_PACKAGES),\
 	$(if $(shell command -v $(package) 2> /dev/null),$(info Found `$(package)`),$(error Please install `$(package)`)))
 

@@ -13,14 +13,18 @@ import (
 
 // Local variables
 var (
-	cloudsqlInstanceID  string
-	cloudsqlUserName    string
-	cloudsqlPassword    string // Consider prompting for password
-	cloudsqlHost        string
-	cloudsqlDBName      string
-	cloudsqlDBCharset   string
-	cloudsqlDBCollation string
-	outputReportDir     string
+	cloudsqlInstanceID    string
+	cloudsqlUserName      string
+	cloudsqlPassword      string // Consider prompting for password
+	cloudsqlHost          string
+	cloudsqlAddress       string
+	cloudsqlPort          string
+	cloudsqlDBName        string
+	cloudsqlDBCharset     string
+	cloudsqlDBCollation   string
+	cloudsqlDBIgnoreRegex string
+	cloudsqlSSLRequired   bool
+	outputReportDir       string
 
 	// cloudsqlCmd represents the cloudsql command
 	cloudsqlCmd = &cobra.Command{
@@ -90,7 +94,7 @@ var (
 				cloudsqlPassword = string(bytePassword)
 			}
 
-			gcp.ExportPostgresUsersAndPermissions(config.Properties.DefaultGCPProject, cloudsqlInstanceID, cloudsqlUserName, cloudsqlPassword, outputReportDir)
+			gcp.ExportPostgresUsersAndPermissions(config.Properties.DefaultGCPProject, cloudsqlInstanceID, cloudsqlAddress, cloudsqlPort, cloudsqlUserName, cloudsqlPassword, outputReportDir, cloudsqlDBIgnoreRegex, cloudsqlSSLRequired)
 		},
 	}
 
@@ -143,10 +147,15 @@ func init() {
 	exportPostgreSQLUsersPermissionsCmd.Flags().StringVarP(&cloudsqlUserName, "username", "u", "", "Username for the new SQL user (e.g. app-name) (required)")
 	exportPostgreSQLUsersPermissionsCmd.Flags().StringVarP(&cloudsqlPassword, "password", "p", "", "Password for the new SQL user (prompt if not provided, or use IAM auth) (e.g. changeme) (required)")
 	exportPostgreSQLUsersPermissionsCmd.Flags().StringVarP(&outputReportDir, "output-dir", "o", "", "Custom output directory for the permissions report (default is current directory)")
+	exportPostgreSQLUsersPermissionsCmd.Flags().StringVarP(&cloudsqlPort, "port", "t", "5432", "Port for the PostgreSQL instance (e.g 5432)")
+	exportPostgreSQLUsersPermissionsCmd.Flags().StringVarP(&cloudsqlAddress, "address", "a", "mydb.example.com", "Address (IP or DNS) of the PostgreSQL instance (e.g. 'mydb.example.com')")
+	exportPostgreSQLUsersPermissionsCmd.Flags().StringVarP(&cloudsqlDBIgnoreRegex, "regex-ignore-databases", "r", "^prisma_migrate", "Regular expression to ignore specific databases (e.g. '^prisma_migrate')")
+	exportPostgreSQLUsersPermissionsCmd.Flags().BoolVarP(&cloudsqlSSLRequired, "ssl-required", "s", false, "Force SSL connection to the PostgreSQL instance (default is false)")
 
 	// Flags are required
 	_ = exportPostgreSQLUsersPermissionsCmd.MarkFlagRequired("instance")
 	_ = exportPostgreSQLUsersPermissionsCmd.MarkFlagRequired("username")
+	_ = exportPostgreSQLUsersPermissionsCmd.MarkFlagRequired("address")
 
 	// Flags for 'cloudsql export-postgresql-audit-logs'
 	exportPostgreSQLAuditLogsCmd.Flags().StringVarP(&cloudsqlInstanceID, "instance", "i", "", "Cloud SQL instance ID (e.g. nonprod-psql) (required)")

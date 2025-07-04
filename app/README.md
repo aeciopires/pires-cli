@@ -208,6 +208,10 @@ $HOME/pires-cli/pires-cli gcp cloudsql export-postgresql-audit-logs -i nonprod-p
 
 Export to TXT file the PostgreSQL users and permissions from a Cloud SQL instance in specific project.
 
+> ATTENTION!!!
+> During execution you will be asked for the password.
+> Omit or remove the ``-s`` option if the instance does not require SSL for encryption to access the database.
+
 ```bash
-$HOME/pires-cli/pires-cli gcp cloudsql export-postgresql-users-permissions -i nonprod-psql -u postgres -C $HOME/pires-cli/.env -D -o $HOME
+$HOME/pires-cli/pires-cli gcp cloudsql export-postgresql-users-permissions -i nonprod-psql -u postgres -r '^prisma_migrate' -t 5432 -a mydb.example.com -o $HOME -s  -C $HOME/pires-cli/.env
 ```
