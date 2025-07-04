@@ -178,7 +178,10 @@ ORDER BY
 
 // ExportPostgresAuditLogs fetches logs for INSERT, UPDATE, and DELETE statements
 // from a Cloud SQL instance using the gcloud logging command.
-// This requires the 'cloudsql.pgaudit' flag to be enabled on the instance.
+// This requires the 'cloudsql.enable_pgaudit' flag to be enabled on the instance.
+// More details: https://cloud.google.com/sql/docs/postgres/flags and
+// https://cloud.google.com/sql/docs/postgres/pg-audit
+// The logs are saved to a specified output directory with a timestamped filename.
 func ExportPostgresAuditLogs(projectID, instanceID, outputDir string) {
 	common.Logger("info", "Exporting audit logs for instance '%s' in project '%s'", instanceID, projectID)
 
@@ -210,7 +213,7 @@ logName="projects/%s/logs/cloudsql.googleapis.com%%2Fpostgres.log"
 	}
 
 	if stdout == "" {
-		common.Logger("fatal", "No audit logs found. Ensure the 'cloudsql.pgaudit' flag is enabled on your Cloud SQL instance.")
+		common.Logger("fatal", "No audit logs found. Ensure the 'cloudsql.enable_pgaudit' flag is enabled on your Cloud SQL instance. More details: https://cloud.google.com/sql/docs/postgres/flags and https://cloud.google.com/sql/docs/postgres/pg-audit")
 	}
 
 	// Create the output directory if it doesn't exist

@@ -197,7 +197,8 @@ $HOME/pires-cli/pires-cli gcp firewall export-rules -C $HOME/pires-cli/.env -D -
 Export to TXT file the PostgreSQL audit logs (INSERT, UPDATE, DELETE) from a Cloud SQL instance
 
 > ATTENTION!!!
-> This requires the ``cloudsql.pgaudit`` flag to be enabled on the instance.
+> This requires the ``cloudsql.enable_pgaudit`` flag to be enabled on the instance. More details: https://cloud.google.com/sql/docs/postgres/flags#list-flags-postgres and
+> https://cloud.google.com/sql/docs/postgres/pg-audit
 
 ```bash
 $HOME/pires-cli/pires-cli gcp cloudsql export-postgresql-audit-logs -i nonprod-psql -C $HOME/pires-cli/.env -D -o $HOME

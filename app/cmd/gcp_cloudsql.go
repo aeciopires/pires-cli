@@ -99,8 +99,9 @@ var (
 		Use:   "export-postgresql-audit-logs",
 		Short: "Exports DML audit logs (INSERT, UPDATE, DELETE) from a Cloud SQL instance.",
 		Long: `Fetches logs from Google Cloud Logging for a specific Cloud SQL instance,
-	filtering for INSERT, UPDATE, and DELETE statements. This requires the 'cloudsql.pgaudit'
-	database flag to be enabled on the instance.`,
+	filtering for INSERT, UPDATE, and DELETE statements. This requires the 'cloudsql.enable_pgaudit'
+	database flag to be enabled on the instance. More details: https://cloud.google.com/sql/docs/postgres/flags and
+	https://cloud.google.com/sql/docs/postgres/pg-audit`,
 		Run: func(cmd *cobra.Command, args []string) {
 			gcp.ExportPostgresAuditLogs(config.Properties.DefaultGCPProject, cloudsqlInstanceID, outputReportDir)
 		},
