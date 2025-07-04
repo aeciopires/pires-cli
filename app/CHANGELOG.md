@@ -10,6 +10,7 @@
 
 # 0.2.0
 
+- Improvements in documentation
 - Features added:
   - Export to TXT file the PostgreSQL users and permissions from a Cloud SQL instance
   - Export to TXT file the PostgreSQL audit logs (INSERT, UPDATE, DELETE) from a Cloud SQL instance
