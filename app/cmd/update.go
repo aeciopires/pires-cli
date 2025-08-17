@@ -27,6 +27,7 @@ current application binary.`,
 
 			if release == nil {
 				common.Logger("warning", "You are already on the latest version: %s\n", config.CLIVersion)
+				return
 			}
 
 			common.Logger("info", "A new version is available: %s. Do you want to update? (y/n): ", release.TagName)
